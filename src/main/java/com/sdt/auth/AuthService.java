@@ -10,63 +10,68 @@ import java.util.UUID;
 @Service
 public class AuthService {
 
-    private final InMemoryUserStore userStore;
+    private final UserAccountRepository userAccountRepository;
     private final JwtTokenService jwtTokenService;
 
-    public AuthService(InMemoryUserStore userStore, JwtTokenService jwtTokenService) {
-        this.userStore = userStore;
+    public AuthService(UserAccountRepository userAccountRepository, JwtTokenService jwtTokenService) {
+        this.userAccountRepository = userAccountRepository;
         this.jwtTokenService = jwtTokenService;
     }
 
     public LoginResponse login(LoginRequest request) {
-        return userStore.findByEmail(request.email())
-                .map(existingUser -> loginExistingUser(request, existingUser))
-                .orElseGet(() -> registerAndLoginNewUser(request));
-    }
+        UserAccountEntity existingUser = userAccountRepository.findByEmailIgnoreCase(request.email().trim())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
 
-    private LoginResponse loginExistingUser(LoginRequest request, UserAccount existingUser) {
-        if (!PasswordHasher.matches(request.password(), existingUser.passwordHash())) {
+        if (!PasswordHasher.matches(request.password(), existingUser.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
 
         return buildSuccessResponse(existingUser, false, "Login successful");
     }
 
-    private LoginResponse registerAndLoginNewUser(LoginRequest request) {
-        UserAccount userAccount = new UserAccount(
-                UUID.randomUUID().toString(),
-                resolveFullName(request),
-                request.email().trim(),
-                PasswordHasher.hash(request.password()),
-                Instant.now()
-        );
-        userStore.save(userAccount);
+    public RegisterResponse register(RegisterRequest request) {
+        String normalizedEmail = request.email().trim();
+        if (userAccountRepository.findByEmailIgnoreCase(normalizedEmail).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+        }
 
-        return buildSuccessResponse(userAccount, true, "Account created and login successful");
+        UserAccountEntity userAccount = new UserAccountEntity();
+        userAccount.setId(UUID.randomUUID().toString());
+        userAccount.setFullName(request.fullName().trim());
+        userAccount.setEmail(normalizedEmail);
+        userAccount.setPasswordHash(PasswordHasher.hash(request.password()));
+        userAccount.setCreatedAt(Instant.now());
+
+        userAccountRepository.save(userAccount);
+
+        return new RegisterResponse(
+                true,
+                "Account created successfully",
+                userAccount.getId(),
+                userAccount.getFullName(),
+                userAccount.getEmail()
+        );
     }
 
-    private LoginResponse buildSuccessResponse(UserAccount userAccount, boolean isNewUser, String message) {
-        String token = jwtTokenService.generateToken(userAccount);
+    private LoginResponse buildSuccessResponse(UserAccountEntity userAccount, boolean isNewUser, String message) {
+        String token = jwtTokenService.generateToken(toUserAccount(userAccount));
         return new LoginResponse(
                 true,
                 message,
                 token,
-                userAccount.id(),
-                userAccount.fullName(),
+                userAccount.getId(),
+                userAccount.getFullName(),
                 isNewUser
         );
     }
 
-    private String resolveFullName(LoginRequest request) {
-        if (request.fullName() != null && !request.fullName().isBlank()) {
-            return request.fullName().trim();
-        }
-
-        String email = request.email().trim();
-        int separatorIndex = email.indexOf('@');
-        if (separatorIndex > 0) {
-            return email.substring(0, separatorIndex);
-        }
-        return email;
+    private UserAccount toUserAccount(UserAccountEntity entity) {
+        return new UserAccount(
+                entity.getId(),
+                entity.getFullName(),
+                entity.getEmail(),
+                entity.getPasswordHash(),
+                entity.getCreatedAt()
+        );
     }
 }

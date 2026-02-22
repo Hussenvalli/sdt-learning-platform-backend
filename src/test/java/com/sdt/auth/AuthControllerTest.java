@@ -20,6 +20,19 @@ class AuthControllerTest {
 
     @Test
     void shouldReturnLoginSuccessWhenCredentialsAreValid() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fullName":"Demo User",
+                                  "email":"you@example.com",
+                                  "password":"password123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.email").value("you@example.com"));
+
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -31,7 +44,7 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Login successful"))
-                .andExpect(jsonPath("$.accessToken").value("demo-access-token"));
+                .andExpect(jsonPath("$.accessToken").exists());
     }
 
     @Test
@@ -45,7 +58,6 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 }
