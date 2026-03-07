@@ -1,4 +1,4 @@
-package com.sdt.auth;
+package com.sdt.controller;
 
 public record RegisterResponse(
         boolean success,

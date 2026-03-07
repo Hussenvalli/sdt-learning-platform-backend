@@ -1,4 +1,4 @@
-package com.sdt.auth;
+package com.sdt.common;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

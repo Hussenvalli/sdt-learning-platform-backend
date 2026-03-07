@@ -1,4 +1,4 @@
-package com.sdt.auth;
+package com.sdt.controller;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,5 +1,11 @@
-package com.sdt.auth;
+package com.sdt.common;
 
+import com.sdt.repo.UserAccountEntity;
+import com.sdt.repo.UserAccountRepository;
+import com.sdt.controller.LoginRequest;
+import com.sdt.controller.LoginResponse;
+import com.sdt.controller.RegisterRequest;
+import com.sdt.controller.RegisterResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;

@@ -1,4 +1,4 @@
-package com.sdt.auth;
+package com.sdt.repo;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

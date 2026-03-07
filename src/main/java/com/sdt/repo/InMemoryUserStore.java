@@ -1,5 +1,6 @@
-package com.sdt.auth;
+package com.sdt.repo;
 
+import com.sdt.common.UserAccount;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;

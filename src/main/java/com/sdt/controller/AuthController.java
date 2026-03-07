@@ -1,5 +1,6 @@
-package com.sdt.auth;
+package com.sdt.controller;
 
+import com.sdt.common.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

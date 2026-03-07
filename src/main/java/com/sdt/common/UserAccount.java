@@ -1,4 +1,4 @@
-package com.sdt.auth;
+package com.sdt.common;
 
 import java.time.Instant;
 
